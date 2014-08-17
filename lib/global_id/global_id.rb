@@ -26,7 +26,8 @@ class GlobalID
   attr_reader :uri, :app, :model_name, :model_id
 
   def initialize(gid)
-    extract_uri_components gid
+    set_extracted_uri(gid)
+    extract_uri_components(@uri)
   end
 
   def find
@@ -48,6 +49,9 @@ class GlobalID
   private
     PATH_REGEXP = %r(\A/([^/]+)/([^/]+)\z)
 
+    def set_extracted_uri(gid)
+      @uri = gid.is_a?(URI) ? gid : URI.parse(gid)
+    end
     # Pending a URI::GID to handle validation
     def extract_uri_components(gid)
       @uri = gid.is_a?(URI) ? gid : URI.parse(gid)
@@ -61,4 +65,5 @@ class GlobalID
         raise URI::InvalidURIError, "Expected a URI like gid://app/Person/1234: #{@uri.inspect}"
       end
     end
+
 end
