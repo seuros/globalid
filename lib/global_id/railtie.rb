@@ -4,17 +4,21 @@ rescue LoadError
 else
 
 class GlobalID
+  # = GlobalID Railtie
   # Set up the signed GlobalID verifier and include Active Record support.
   class Railtie < Rails::Railtie # :nodoc:
-    initializer 'global_id' do
+    config.global_id = ActiveSupport::OrderedOptions.new
+
+    initializer 'global_id' do |app|
       require 'global_id'
 
-      # TODO: expose as app config.global_id.app = 'name'
-      GlobalID.app = Rails.application.railtie_name.remove('_application')
+      options = app.config.global_id
+      options.app ||= Rails.application.railtie_name.remove('_application')
+      GlobalID.app = options.app
 
-      # TODO: expose as app config.global_id.verifier = custom_verifier
-      config.after_initialize do |app|
-        SignedGlobalID.verifier = app.message_verifier(:signed_global_ids)
+      config.after_initialize do
+        options.verifier ||= app.message_verifier(:signed_global_ids)
+        SignedGlobalID.verifier = options.verifier
       end
 
       ActiveSupport.on_load(:active_record) do
